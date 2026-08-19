@@ -4,7 +4,6 @@ require "rails"
 require "active_model/railtie"
 require "active_job/railtie"
 require "action_controller/railtie"
-require "action_mailer/railtie"
 # Note: ActiveRecord is intentionally not required — this app uses
 # Mongoid (MongoDB) instead of the default SQL/ActiveRecord stack.
 
