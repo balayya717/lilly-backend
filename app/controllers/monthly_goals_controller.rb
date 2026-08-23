@@ -27,6 +27,9 @@ class MonthlyGoalsController < ApplicationController
   private
 
   def goal_params
-    params.require(:monthly_goal).permit(:month, :title, :description, :status)
+    params.require(:monthly_goal).permit(
+      :month, :title, :description, :status,
+      weekly_milestones_attributes: [:week_number, :target_description]
+    )
   end
 end

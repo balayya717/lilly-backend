@@ -29,6 +29,8 @@ class WeeklyMilestonesController < ApplicationController
   end
 
   def milestone_params
-    params.require(:weekly_milestone).permit(:week_number, :target_description, :status)
+    params.require(:weekly_milestone).permit(
+      :week_number, :target_description, :status, :percent_complete, :notes
+    )
   end
 end

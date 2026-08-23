@@ -23,23 +23,49 @@ Procfile         tells Render how to start the app
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/health` | Confirms the app is up and can reach MongoDB |
-| GET | `/monthly_goals` | List all goals |
-| POST | `/monthly_goals` | Create a goal |
+| GET | `/monthly_goals` | List all goals — each includes `percent_complete` (average of its weekly milestones) and its embedded `weekly_milestones` array |
+| POST | `/monthly_goals` | Create a goal **with its 4 weekly milestones in one call** (see below) |
 | GET | `/monthly_goals/:id` | One goal |
-| PATCH | `/monthly_goals/:id` | Update a goal |
-| DELETE | `/monthly_goals/:id` | Delete a goal |
+| PATCH | `/monthly_goals/:id` | Update a goal's `title`/`description`/`month`/`status` |
+| DELETE | `/monthly_goals/:id` | Delete a goal (cascades to its weekly milestones) |
 | GET | `/monthly_goals/:monthly_goal_id/weekly_milestones` | List milestones for a goal |
 | POST | `/monthly_goals/:monthly_goal_id/weekly_milestones` | Add a milestone |
-| PATCH | `/monthly_goals/:monthly_goal_id/weekly_milestones/:id` | Update a milestone |
+| PATCH | `/monthly_goals/:monthly_goal_id/weekly_milestones/:id` | Update a milestone's `percent_complete` and/or `notes` (also accepts `target_description`/`week_number`) |
 | DELETE | `/monthly_goals/:monthly_goal_id/weekly_milestones/:id` | Delete a milestone |
 | GET | `/daily_logs` | List check-ins (optional `?date=2026-08-19` filter) |
 | POST | `/daily_logs` | Create a check-in |
 | PATCH | `/daily_logs/:id` | Update a check-in |
 
-All POST/PATCH bodies are wrapped in their resource name, e.g.:
+The `daily_logs` endpoints are still here but unused by the current frontend —
+they're kept for a future WhatsApp-driven daily check-in feature (see
+`source` field on `DailyLog`). The app's actual progress tracking is now at
+the weekly-milestone level, not daily.
+
+All POST/PATCH bodies are wrapped in their resource name. A `MonthlyGoal`
+must be created with **exactly 4** nested weekly milestones — this is
+enforced by a model validation on create:
 
 ```json
-{ "monthly_goal": { "month": "2026-09", "title": "Finish Polity Ch 1-10" } }
+{
+  "monthly_goal": {
+    "month": "2026-09",
+    "title": "Finish Polity Ch 1-10",
+    "description": "",
+    "weekly_milestones_attributes": [
+      { "week_number": 1, "target_description": "Chapters 1-3" },
+      { "week_number": 2, "target_description": "Chapters 4-6" },
+      { "week_number": 3, "target_description": "Chapters 7-9" },
+      { "week_number": 4, "target_description": "Revision + test" }
+    ]
+  }
+}
+```
+
+Recording progress against a weekly milestone (this is what drives the goal's
+`percent_complete`):
+
+```json
+{ "weekly_milestone": { "percent_complete": 65, "notes": "Behind on ch. 7" } }
 ```
 
 ## Option A — Test it locally first (optional but recommended)
